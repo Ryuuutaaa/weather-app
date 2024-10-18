@@ -37,8 +37,8 @@ class _WeatherPageState extends State<WeatherPage> {
 
   // init state
   @override
-  void iniState() {
-    super.iniState();
+  void initState() {
+    super.initState();
 
     // fetch weather on startup
     _fetchWeather();
