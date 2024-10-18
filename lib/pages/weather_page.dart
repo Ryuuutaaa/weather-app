@@ -10,50 +10,56 @@ class WeatherPage extends StatefulWidget {
 }
 
 class _WeatherPageState extends State<WeatherPage> {
-  // api key
+  // API key
   final _weatherService = WeatherService("5e509ac28ec047bd3b783d5ab419bf32");
   Weather? _weather;
 
-  // fetch weather
+  // Fetch weather
   _fetchWeather() async {
-    // get current city
+    // Get current city
     String cityName = await _weatherService.getCurrentCity();
 
-    // get weather for city
+    // Get weather for city
     try {
       final weather = await _weatherService.getWeather(cityName);
       setState(() {
         _weather = weather;
       });
-    }
-
-    // any error
-    catch (e) {
+    } catch (e) {
       print(e);
     }
   }
 
-  // weather animmation
-
-  // init state
+  // Init state
   @override
   void initState() {
     super.initState();
-
-    // fetch weather on startup
+    // Fetch weather on startup
     _fetchWeather();
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // city name
-          Text(_weather?.cityName ?? "loading city"),
+          // City name
+          Text(
+            _weather?.cityName ?? "Loading city...",
+            style: TextStyle(fontSize: 24),
+          ),
 
-          // temperature
-          Text("${_weather?.temperature.round()}*C")
+          const SizedBox(height: 16),
+
+          // Temperature
+          Text(
+            _weather != null
+                ? "${_weather!.temperature.round()}°C" // Use ! to safely access temperature
+                : "Loading temperature...",
+            style: TextStyle(fontSize: 20),
+          ),
         ],
       ),
     );
