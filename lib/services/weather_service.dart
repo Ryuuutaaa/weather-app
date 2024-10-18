@@ -1,28 +1,29 @@
 import 'dart:convert';
-
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:weathering/models/weather_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:weathering/models/weather_model.dart';
 
 class WeatherService {
-  static const BASE_URL = "https://api.openweathermap.org/data/3.0/weather";
+  static const BASE_URL = "https://api.openweathermap.org/data/3.0/onecall";
   final String apiKey;
 
   WeatherService(this.apiKey);
 
-  Future<Weather> getWeather(String cityName) async {
-    final response = await http.get(Uri.parse("$BASE_URL?q=$cityName&appid=$apiKey&units=metric"));
+  // Mendapatkan cuaca berdasarkan latitude dan longitude
+  Future<Weather> getWeather(double lat, double lon) async {
+    final exclude = "minutely,hourly"; // Kamu bisa mengatur sesuai kebutuhan
+    final response = await http.get(Uri.parse("$BASE_URL?lat=$lat&lon=$lon&exclude=$exclude&appid=$apiKey&units=metric"));
 
     if (response.statusCode == 200) {
       return Weather.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to load weather data');
+      throw Exception('Failed to load weather data: ${response.statusCode} - ${response.reasonPhrase}');
     }
   }
 
-  Future<String> getCurrentCity() async {
-    // Get permission from user
+  // Mendapatkan latitude dan longitude berdasarkan lokasi saat ini
+  Future<Position> getCurrentLocation() async {
     LocationPermission permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
@@ -31,19 +32,7 @@ class WeatherService {
       throw Exception("Location permissions are permanently denied, we cannot request permissions.");
     }
 
-    // Fetch the current location
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-
-    // Convert the location into a list of placemark objects
-    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-
-    // Ensure the placemarks list is not empty
-    if (placemarks.isNotEmpty) {
-      // Extract the city name from the first placemark
-      String? city = placemarks[0].locality;
-      return city ?? "Unknown city";
-    } else {
-      throw Exception("No placemarks found for the location.");
-    }
+    // Mendapatkan posisi saat ini
+    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
 }

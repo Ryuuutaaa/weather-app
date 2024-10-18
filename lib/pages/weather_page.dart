@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:weathering/models/weather_model.dart';
 import 'package:weathering/services/weather_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 class WeatherPage extends StatefulWidget {
   const WeatherPage({super.key});
@@ -10,18 +11,18 @@ class WeatherPage extends StatefulWidget {
 }
 
 class _WeatherPageState extends State<WeatherPage> {
-  // API key
   final _weatherService = WeatherService("5e509ac28ec047bd3b783d5ab419bf32");
   Weather? _weather;
 
-  // Fetch weather
+  // Fetch weather berdasarkan koordinat lokasi pengguna
   _fetchWeather() async {
-    // Get current city
-    String cityName = await _weatherService.getCurrentCity();
-
-    // Get weather for city
     try {
-      final weather = await _weatherService.getWeather(cityName);
+      // Dapatkan lokasi saat ini (latitude & longitude)
+      Position position = await _weatherService.getCurrentLocation();
+
+      // Panggil API menggunakan latitude & longitude
+      final weather = await _weatherService.getWeather(position.latitude, position.longitude);
+
       setState(() {
         _weather = weather;
       });
@@ -30,11 +31,10 @@ class _WeatherPageState extends State<WeatherPage> {
     }
   }
 
-  // Init state
   @override
   void initState() {
     super.initState();
-    // Fetch weather on startup
+    // Fetch weather saat aplikasi dimulai
     _fetchWeather();
   }
 
@@ -45,19 +45,17 @@ class _WeatherPageState extends State<WeatherPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // City name
+          // Tampilkan nama kota atau status loading
           Text(
-            _weather?.cityName ?? "Loading city...",
+            _weather?.cityName ?? "Loading location...",
             style: TextStyle(fontSize: 24),
           ),
 
           const SizedBox(height: 16),
 
-          // Temperature
+          // Tampilkan suhu atau status loading
           Text(
-            _weather != null
-                ? "${_weather!.temperature.round()}°C" // Use ! to safely access temperature
-                : "Loading temperature...",
+            _weather != null ? "${_weather!.temperature.round()}°C" : "Loading temperature...",
             style: TextStyle(fontSize: 20),
           ),
         ],
