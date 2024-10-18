@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:geolocator/geolocator.dart';
 import 'package:weathering/models/weather_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -16,6 +17,14 @@ class WeatherService {
       return Weather.fromJson(jsonDecode(response.body)); // Gunakan jsonDecode
     } else {
       throw Exception('Failed to load weather data');
+    }
+  }
+
+  Future<String> getCurrentCity() async {
+    // get permisson from user
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
     }
   }
 }
