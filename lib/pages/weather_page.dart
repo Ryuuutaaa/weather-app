@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart'; // Untuk mendapatkan lokasi pengguna
 import 'package:weathering/models/weather_model.dart';
 import 'package:weathering/services/weather_service.dart';
-import 'package:geolocator/geolocator.dart';
 
 class WeatherPage extends StatefulWidget {
   const WeatherPage({super.key});
@@ -18,7 +18,9 @@ class _WeatherPageState extends State<WeatherPage> {
   _fetchWeather() async {
     try {
       // Dapatkan lokasi saat ini (latitude & longitude)
-      Position position = await _weatherService.getCurrentLocation();
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
+      print("Latitude: ${position.latitude}, Longitude: ${position.longitude}");
 
       // Panggil API menggunakan latitude & longitude
       final weather = await _weatherService.getWeather(position.latitude, position.longitude);
@@ -27,7 +29,7 @@ class _WeatherPageState extends State<WeatherPage> {
         _weather = weather;
       });
     } catch (e) {
-      print(e);
+      print("Error: $e");
     }
   }
 
@@ -45,19 +47,22 @@ class _WeatherPageState extends State<WeatherPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Tampilkan nama kota atau status loading
-          Text(
-            _weather?.cityName ?? "Loading location...",
-            style: TextStyle(fontSize: 24),
-          ),
+          if (_weather == null) Text("Loading location and temperature...", style: TextStyle(fontSize: 20)),
+          if (_weather != null) ...[
+            // Tampilkan nama kota atau status loading
+            Text(
+              _weather!.cityName ?? "Unknown location",
+              style: TextStyle(fontSize: 24),
+            ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // Tampilkan suhu atau status loading
-          Text(
-            _weather != null ? "${_weather!.temperature.round()}°C" : "Loading temperature...",
-            style: TextStyle(fontSize: 20),
-          ),
+            // Tampilkan suhu atau status loading
+            Text(
+              "${_weather!.temperature.round()}°C",
+              style: TextStyle(fontSize: 20),
+            ),
+          ]
         ],
       ),
     );
